@@ -1,20 +1,15 @@
 import React, { Component } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableHighlight } from 'react-native';
 
-// export default function App() {
-//   return (
-//     <View style={styles.container}>
-//       <Text style={styles.text}>Open up App.js to start working on your app, xoxo</Text>
-//     </View>
-//   );
-// }
-
 export default class Game extends Component {
+
 //set initial state
 state = { // state is the obj
   secret: 0,
   input: '',
-  feedback: ''
+  feedback: '',
+  isRunning: true,
+  attempt: 5
 }
 
 //function to gen random no
@@ -26,12 +21,14 @@ genRandom(){
 init(){
   const secretNo = this.genRandom()
   this.setState({secret: secretNo})
+  //reset state
+  this.setState({isRunning: true})
+  this.setState({attempt: 5})
 }
 
 //lifecycle fn
 componentDidMount(){
   this.init()
-
 }
 
 //update input state
@@ -43,38 +40,67 @@ updateInput = (value) => {
 chkGuess = () => {
   const userGuess = parseInt(this.state.input)
   const secretNo = this.state.secret
-  if (userGuess == secretNo){
-    //feedback
-    this.setState({feedback: 'Correct! the ans is ' + secretNo})
+  const isRunning = this.state.isRunning
+
+  while(isRunning){
+
+    if (this.state.attempt > 1){
+
+      if (userGuess == secretNo){
+        //feedback
+        this.setState({feedback: 'Correct! the answer is ' + secretNo})
+        this.init()
+      }
+      else if (userGuess < secretNo){
+        this.setState({feedback: "It's larger than " + userGuess})
+      }
+      else {
+        this.setState({feedback: "It's smaller than " + userGuess})
+      }
+      this.state.attempt--;
+
+    } else {
+      this.setState({feedback: "You lose, the answer is " + secretNo})
+      this.init()
+    }
+
+    this.updateInput
+    this.textInput.clear()
+
+    return
   }
-  if (userGuess < secretNo){
-    this.setState({feedback: "It's smaller than " + userGuess})
-  }
-  if (userGuess > secretNo){
-    this.setState({feedback: "It's larger than " + userGuess + ' ' +secretNo})
-  }
+
+  this.textInput.clear()
   return
+  
 }
 
   render () {
     return(
       <View style={styles.container}>
         <Text style={styles.text}>
-          Guess the number....
+          Guess the number...
+        </Text>
+
+        <Text style={styles.text}>
+          Attempt left {this.state.attempt}
         </Text>
 
         <TextInput 
         style={styles.input} 
+        ref={inputField => { this.textInput = inputField }}
         keyboardType='number-pad'
         onChangeText={this.updateInput}>
         </TextInput>
 
         <TouchableHighlight 
         style={styles.btn}
-        underlayColor='white'
-        onPress={this.chkGuess}>
+        underlayColor='#A9A9A9'
+        onPress={
+          this.chkGuess}>
           <Text>Submit</Text>
         </TouchableHighlight>
+
         <Text style={styles.text}>
           {this.state.feedback}
         </Text>
@@ -90,6 +116,7 @@ const styles = StyleSheet.create({
     width: 100,
     padding: 10,
     marginTop: 10,
+    marginBottom: 10,
     backgroundColor: 'white',
     alignItems: 'center'
   },
